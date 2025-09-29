@@ -6,11 +6,8 @@ Configurações e constantes do Monitor DW
 from datetime import datetime
 import os
 
-# Compatibilidade com versões mais antigas do Python
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:
-    from backports.zoneinfo import ZoneInfo
+# Usar zoneinfo padrão do Python 3.9+
+from zoneinfo import ZoneInfo
 
 # ======================== CONFIGURAÇÕES GERAIS ========================
 TZ = ZoneInfo("America/Sao_Paulo")

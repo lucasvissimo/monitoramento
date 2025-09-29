@@ -1,3 +1,2 @@
-# System packages required for psycopg2
 libpq-dev
 postgresql-client

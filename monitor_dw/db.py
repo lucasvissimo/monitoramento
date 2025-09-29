@@ -9,19 +9,27 @@ import streamlit as st
 from datetime import datetime, timezone
 from .config import HISTORY_DB_PATH, TZ
 
-# Import psycopg2 only when needed
-try:
-    import psycopg2
-    PSYCOPG2_AVAILABLE = True
-except ImportError:
-    try:
-        # Try importing psycopg2-binary as fallback
-        import psycopg2
-        PSYCOPG2_AVAILABLE = True
-    except ImportError:
-        PSYCOPG2_AVAILABLE = False
-        psycopg2 = None
-        print("⚠️ psycopg2 não disponível. Funcionalidades de banco de dados limitadas.")
+# psycopg2 will be imported only when needed
+PSYCOPG2_AVAILABLE = None
+psycopg2 = None
+
+def _get_psycopg2():
+    """Import psycopg2 only when needed"""
+    global PSYCOPG2_AVAILABLE, psycopg2
+    if PSYCOPG2_AVAILABLE is None:
+        try:
+            import psycopg2
+            PSYCOPG2_AVAILABLE = True
+        except ImportError:
+            try:
+                # Try importing psycopg2-binary as fallback
+                import psycopg2
+                PSYCOPG2_AVAILABLE = True
+            except ImportError:
+                PSYCOPG2_AVAILABLE = False
+                psycopg2 = None
+                print("⚠️ psycopg2 não disponível. Funcionalidades de banco de dados limitadas.")
+    return psycopg2, PSYCOPG2_AVAILABLE
 
 
 # ======================== HISTORY DATABASE ========================
@@ -220,7 +228,8 @@ def update_daily_summary(date_str: str, redshift_queries: int = 0, jira_tickets:
 @st.cache_resource(show_spinner=False)
 def get_redshift_conn():
     """Obtém conexão com Redshift com configurações robustas"""
-    if not PSYCOPG2_AVAILABLE:
+    psycopg2, available = _get_psycopg2()
+    if not available:
         raise ImportError("psycopg2 não está disponível. Instale com: pip install psycopg2-binary")
     
     s = st.secrets["dw_vissimo"]
@@ -262,7 +271,8 @@ def get_redshift_conn():
 @st.cache_resource(show_spinner=False)
 def get_postgres_conn():
     """Obtém conexão com Postgres com configurações robustas"""
-    if not PSYCOPG2_AVAILABLE:
+    psycopg2, available = _get_psycopg2()
+    if not available:
         raise ImportError("psycopg2 não está disponível. Instale com: pip install psycopg2-binary")
     
     s = st.secrets["postgres"]
@@ -305,7 +315,8 @@ def get_postgres_conn():
 @st.cache_data(ttl=5, show_spinner=False)
 def run_redshift(sql: str) -> pd.DataFrame:
     """Executa query no Redshift com retry automático"""
-    if not PSYCOPG2_AVAILABLE:
+    psycopg2, available = _get_psycopg2()
+    if not available:
         st.warning("⚠️ psycopg2 não disponível. Funcionalidades de Redshift desabilitadas.")
         return pd.DataFrame()
     
@@ -353,7 +364,8 @@ def run_redshift(sql: str) -> pd.DataFrame:
 @st.cache_data(ttl=5, show_spinner=False)
 def run_postgres(sql: str) -> pd.DataFrame:
     """Executa query no Postgres com retry automático"""
-    if not PSYCOPG2_AVAILABLE:
+    psycopg2, available = _get_psycopg2()
+    if not available:
         st.warning("⚠️ psycopg2 não disponível. Funcionalidades de PostgreSQL desabilitadas.")
         return pd.DataFrame()
     

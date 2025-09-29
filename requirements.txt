@@ -1,0 +1,10 @@
+# Monitor DW - Dependências
+streamlit>=1.28.0
+pandas>=2.0.0
+numpy>=1.24.0
+psycopg2-binary>=2.9.9
+requests>=2.31.0
+backports.zoneinfo>=0.2.1
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.15.0

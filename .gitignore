@@ -1,5 +1,5 @@
-# Streamlit secrets
-.streamlit/secrets.toml
+# Streamlit secrets (commented out to allow secrets.toml in repo)
+# .streamlit/secrets.toml
 
 # Database files
 *.db

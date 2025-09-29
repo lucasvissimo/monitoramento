@@ -80,17 +80,34 @@ def init_history_db():
 
 def log_user_login(username: str):
     """Registra login do usuário"""
-    conn = sqlite3.connect(HISTORY_DB_PATH)
-    conn.execute("PRAGMA encoding = 'UTF-8'")
-    cursor = conn.cursor()
-    # Use current timestamp with timezone for accurate time tracking
-    now_utc = datetime.now(timezone.utc)
-    cursor.execute("""
-        INSERT INTO user_logins (username, login_time)
-        VALUES (?, ?)
-    """, (username, now_utc.isoformat()))
-    conn.commit()
-    conn.close()
+    try:
+        conn = sqlite3.connect(HISTORY_DB_PATH)
+        conn.execute("PRAGMA encoding = 'UTF-8'")
+        cursor = conn.cursor()
+        
+        # Garantir que a tabela existe
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_logins (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                ip_address TEXT,
+                user_agent TEXT
+            )
+        """)
+        
+        # Use current timestamp with timezone for accurate time tracking
+        now_utc = datetime.now(timezone.utc)
+        cursor.execute("""
+            INSERT INTO user_logins (username, login_time)
+            VALUES (?, ?)
+        """, (username, now_utc.isoformat()))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Erro ao registrar login: {e}")
+        if 'conn' in locals():
+            conn.close()
 
 
 def log_error(error_type: str, details: str = ""):

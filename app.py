@@ -27,6 +27,8 @@ def init_db_if_available():
         init_history_db = _init_history_db
         log_error = _log_error
         DB_AVAILABLE = True
+        # Inicializar o banco de dados SQLite
+        init_history_db()
         return True
     except ImportError as e:
         st.error(f"⚠️ Módulo de banco de dados não disponível: {e}")

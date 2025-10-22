@@ -1,0 +1,19 @@
+# Rotas de alertas para diferentes severidades e destinos
+version: 1
+
+routes:
+  - id: slack-critical
+    when:
+      severity: critical
+    action:
+      type: slack
+      webhook_secret_key: slack.webhook_url
+      payload_template: ./slack_blocks_example.json
+
+  - id: slack-warning
+    when:
+      severity: warning
+    action:
+      type: slack
+      webhook_secret_key: slack.webhook_url
+      payload_template: ./slack_blocks_example.json

@@ -1,0 +1,33 @@
+{
+  "title": "Monitor DW — Overview",
+  "refresh": "60s",
+  "panels": [
+    {
+      "id": "redshift-over-threshold",
+      "title": "Queries > Threshold",
+      "type": "stat",
+      "query": "SELECT running_over FROM stv_recents WHERE duration > {{ threshold_min }};",
+      "thresholds": [
+        {"color": "green", "value": 0},
+        {"color": "red", "value": 1}
+      ]
+    },
+    {
+      "id": "powerbi-staleness",
+      "title": "Power BI — Min desde último refresh",
+      "type": "stat",
+      "query": "-- usar templates/observability/powerbi_last_refresh.sql",
+      "thresholds": [
+        {"color": "green", "value": 0},
+        {"color": "yellow", "value": 180},
+        {"color": "red", "value": 360}
+      ]
+    },
+    {
+      "id": "jira-open-incidents",
+      "title": "Chamados abertos (Jira)",
+      "type": "stat",
+      "query": "JQL: project = TD AND resolution IS EMPTY AND statusCategory IN ('To Do','In Progress')"
+    }
+  ]
+}

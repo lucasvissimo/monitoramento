@@ -1,0 +1,45 @@
+# Definição de SLOs e SLIs para o Monitor DW
+
+service: monitor-dw
+owner: data-platform
+review: quarterly
+
+slos:
+  - id: redshift-long-queries
+    objective: 99.9%
+    period: 30d
+    sli:
+      metric: redshift.running_queries_over_threshold
+      condition: value == 0
+    alerts:
+      - severity: critical
+        when: consecutive_breaches >= 3
+        channel: slack
+      - severity: warning
+        when: percentile_over_period(p99) > 0
+        channel: slack
+
+  - id: powerbi-refresh-staleness
+    objective: 99.0%
+    period: 30d
+    sli:
+      metric: powerbi.backlog_sap_last_refresh_minutes
+      condition: value <= 180
+    alerts:
+      - severity: critical
+        when: value > 360 for 2h
+        channel: slack
+      - severity: warning
+        when: value > 180 for 1h
+        channel: slack
+
+  - id: jira-operational-readiness
+    objective: 100%
+    period: 7d
+    sli:
+      metric: jira.open_incidents_count
+      condition: value == 0
+    alerts:
+      - severity: critical
+        when: value >= 1 for 30m
+        channel: slack

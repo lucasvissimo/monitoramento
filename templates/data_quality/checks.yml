@@ -1,0 +1,55 @@
+# Templates de Data Quality checks
+
+version: 1
+owner: data-platform
+
+# Variáveis globais
+vars:
+  redshift_schema: public
+  freshness_minutes_warn: 180
+  freshness_minutes_crit: 360
+
+checks:
+  - id: dq_rowcount_nonzero
+    name: Rowcount > 0
+    description: Garante que a tabela não esteja vazia
+    type: sql
+    query_template: ../data_quality/sql/rowcount_nonzero.sql
+    params:
+      schema: ${redshift_schema}
+      table: REQUIRED
+    thresholds:
+      pass_when: value > 0
+    labels:
+      severity: warning
+
+  - id: dq_null_ratio
+    name: Nulos em coluna abaixo do limite
+    description: Verifica percentual de nulos em coluna
+    type: sql
+    query_template: ../data_quality/sql/null_ratio.sql
+    params:
+      schema: ${redshift_schema}
+      table: REQUIRED
+      column: REQUIRED
+      max_null_ratio: 0.05
+    thresholds:
+      pass_when: value <= ${max_null_ratio}
+    labels:
+      severity: warning
+
+  - id: dq_freshness
+    name: Freshness por coluna timestamp
+    description: Verifica a diferença, em minutos, entre agora e o MAX(col_ts)
+    type: sql
+    query_template: ../data_quality/sql/freshness_minutes.sql
+    params:
+      schema: ${redshift_schema}
+      table: REQUIRED
+      ts_col: REQUIRED
+    thresholds:
+      pass_when: value <= ${freshness_minutes_warn}
+      warn_when: value > ${freshness_minutes_warn}
+      crit_when: value > ${freshness_minutes_crit}
+    labels:
+      severity: critical

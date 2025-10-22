@@ -1,0 +1,41 @@
+# Catálogo de Métricas (Observabilidade)
+# Alinhe nomes com monitor_dw.services e fontes reais
+
+version: 1
+owner: data-platform
+system: monitor-dw
+
+metrics:
+  - name: redshift.running_queries_over_threshold
+    description: Total de queries em execução acima do limite (minutos)
+    source: redshift
+    collection:
+      sql_template: ../redshift/long_running_queries_count.sql
+      schedule: "*/5 * * * *"  # a cada 5 min
+    labels:
+      env: ${ENV}
+      cluster: ${REDSHIFT_CLUSTER}
+    slo_target: 0
+
+  - name: powerbi.backlog_sap_last_refresh_minutes
+    description: Minutos desde o último refresh da view backlog_sap
+    source: postgres
+    collection:
+      sql_template: ../observability/powerbi_last_refresh.sql
+      schedule: "0 */1 * * *"  # hora em hora
+    labels:
+      env: ${ENV}
+      workspace: backlog_sap
+    slo_target: 180
+
+  - name: jira.open_incidents_count
+    description: Quantidade de chamados abertos (To Do/In Progress)
+    source: jira
+    collection:
+      api: jira.search.count
+      jql: "project = TD AND resolution IS EMPTY AND statusCategory IN ('To Do','In Progress')"
+      schedule: "*/30 * * * *"  # a cada 30 min
+    labels:
+      env: ${ENV}
+      project: TD
+    slo_target: 0

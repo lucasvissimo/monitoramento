@@ -1,0 +1,11 @@
+{
+  "text": "🚨 Monitor DW — Errors",
+  "blocks": [
+    { "type": "header", "text": { "type": "plain_text", "text": "🚨 Monitor DW — Errors" } },
+    { "type": "context", "elements": [ { "type": "mrkdwn", "text": "⏱️ {{ now_iso }} • Enviado automaticamente" } ] },
+    { "type": "divider" },
+    { "type": "section", "text": { "type": "mrkdwn", "text": "*Queries acima de {{ redshift_threshold }} min:* {{ running_over }}" } },
+    { "type": "section", "text": { "type": "mrkdwn", "text": "*Power BI — Último refresh (UTC):* {{ powerbi_last_refresh_utc }}" } },
+    { "type": "section", "text": { "type": "mrkdwn", "text": "*Chamados abertos (Jira):* {{ jira_total }}" } }
+  ]
+}

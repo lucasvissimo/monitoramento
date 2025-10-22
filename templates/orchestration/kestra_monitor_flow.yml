@@ -1,0 +1,55 @@
+id: monitor-dw-daily
+namespace: main
+labels:
+  system: monitor-dw
+  owner: data-platform
+
+inputs:
+  - id: redshift_threshold
+    type: INT
+    defaults: 10
+  - id: slack_webhook
+    type: STRING
+    required: false
+
+triggers:
+  - id: daily-7am
+    type: cron
+    cron: "0 7 * * *"
+    timezone: America/Sao_Paulo
+
+variables:
+  dq_config_path: templates/data_quality/checks.yml
+  metrics_catalog: templates/observability/metrics_catalog.yml
+
+tasks:
+  - id: redshift-long-queries-count
+    type: io.kestra.plugin.jdbc.postgres.Query
+    url: {{ secret('dw_vissimo.url') }}
+    username: {{ secret('dw_vissimo.user') }}
+    password: {{ secret('dw_vissimo.password') }}
+    sql: |
+      {{ read('templates/redshift/long_running_queries_count.sql') | mustache({ 'threshold_min': inputs.redshift_threshold }) }}
+
+  - id: powerbi-last-refresh
+    type: io.kestra.plugin.jdbc.postgres.Query
+    url: {{ secret('postgres.url') }}
+    username: {{ secret('postgres.user') }}
+    password: {{ secret('postgres.password') }}
+    sql: |
+      {{ read('templates/observability/powerbi_last_refresh.sql') }}
+
+  - id: render-slack-payload
+    type: io.kestra.plugin.core.template.Handlebars
+    from: templates/alerts/slack_blocks_example.json
+    data:
+      now_iso: {{ now | date("YYYY-MM-DD HH:mm") }}
+      redshift_threshold: {{ inputs.redshift_threshold }}
+      running_over: {{ outputs.redshift-long-queries-count.rows[0].running_over }}
+      powerbi_last_refresh_utc: {{ outputs.powerbi-last-refresh.rows[0].minutes_since_refresh }} min
+      jira_total: 0
+
+  - id: send-slack
+    type: io.kestra.plugin.notifications.slack.SlackExecution
+    url: {{ inputs.slack_webhook ?? secret('slack.webhook_url') }}
+    payload: {{ outputs.render-slack-payload.rendered }}
